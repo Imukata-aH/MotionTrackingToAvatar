@@ -164,7 +164,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.03
   far clip plane: 1000
   field of view: 45
   orthographic: 0
@@ -546,6 +546,7 @@ MonoBehaviour:
   isQuietMode: 0
   certaintyThreshold: 0.2
   targetFaceObject: {fileID: 938954189}
+  lowPassFactor: 0.5
 --- !u!4 &1391422050
 Transform:
   m_ObjectHideFlags: 0
