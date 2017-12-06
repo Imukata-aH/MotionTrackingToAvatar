@@ -54,6 +54,7 @@ public class FaceTracker : MonoBehaviour
 
     private Thread faceTrackingWorkerThread;
     private bool isRunning = false;
+    private bool isUpdatedFaceTracking = false;
     private object locker;
 
     // Use this for initialization
@@ -112,8 +113,15 @@ public class FaceTracker : MonoBehaviour
     {
         lock(locker)
         {
+            if(this.isUpdatedFaceTracking)
+            {
+                this.destinationFaceRotation *= this.initialModelHeadRotation;
+
+                this.isUpdatedFaceTracking = false;
+            }
+
             // 毎フレーム頭部の回転値に対してLowPassFilteringして補間
-            if(!isLocal)
+            if (!isLocal)
                 this.targetFaceObject.transform.rotation = LowpassFilterQuaternion(this.targetFaceObject.transform.rotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
             else
                 this.targetFaceObject.transform.localRotation = LowpassFilterQuaternion(this.targetFaceObject.transform.localRotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
@@ -148,12 +156,12 @@ public class FaceTracker : MonoBehaviour
         transformationM.SetRow(2, new Vector4((float)rotMat[2 * 3 + 0], (float)rotMat[2 * 3 + 1], (float)rotMat[2 * 3 + 2], (float)tVec[2]));
         transformationM.SetRow(3, new Vector4(0, 0, 0, 1));
 
-        Quaternion rotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
-        rotation.eulerAngles = new Vector3(-rotation.eulerAngles.x, - rotation.eulerAngles.y, rotation.eulerAngles.z);   // 鏡写しに回転するよう補正
-
-        lock(locker)
+        lock (locker)
         {
-            this.destinationFaceRotation = rotation * this.initialModelHeadRotation;
+            this.destinationFaceRotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
+            this.destinationFaceRotation.eulerAngles = new Vector3(-this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
+
+            this.isUpdatedFaceTracking = true;
         }
     }
 
