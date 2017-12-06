@@ -72,7 +72,7 @@ public class FaceTracker : MonoBehaviour
 
     private void UpdateTrackingValues()
     {
-        trackingValue = wrapper.GetFaceTrackingValues();
+        wrapper.GetFaceTrackingValues(ref trackingValue);
 
         if(trackingValue.detectionCertainty > this.certaintyThreshold)
         {

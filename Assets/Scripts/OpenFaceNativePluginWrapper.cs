@@ -99,14 +99,12 @@ public class OpenFaceNativePluginWrapper
         TerminateFaceTracker(faceTracker);
     }
 
-    public FaceTrackingValues GetFaceTrackingValues()
+    public void GetFaceTrackingValues(ref FaceTrackingValues dst)
     {
         // フィールドのデータはNativeで書き換えられるため、コピーした値を返す
-        FaceTrackingValues ret;
         lock (locker)
         {
-            ret = faceTrackingValues;
+            dst = faceTrackingValues;
         }
-        return ret;
     }
 }
