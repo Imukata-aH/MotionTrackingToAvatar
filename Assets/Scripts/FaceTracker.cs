@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using UnityEngine;
 
 public class FaceTracker : MonoBehaviour
@@ -38,9 +39,21 @@ public class FaceTracker : MonoBehaviour
     private Matrix4x4 invertYM;
     private Matrix4x4 invertZM;
 
+    private Thread faceTrackingWorkerThread;
+    private bool isRunning = false;
+    private object locker;
+
     // Use this for initialization
     void Start()
     {
+        // FaceTracking 用 WorkerThread 初期化
+        locker = new object();
+        this.faceTrackingWorkerThread = new Thread(new ThreadStart(DoFaceTracking))
+        {
+            Name = "FaceTrackingWorkerThread",
+            IsBackground = true,
+        };
+
         // 座標系変換行列の初期化
         invertYM = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, -1, 1));
         //Debug.Log("invertYM " + invertYM.ToString());
@@ -55,26 +68,51 @@ public class FaceTracker : MonoBehaviour
         string basePath = "Assets/Resources";
         wrapper = new OpenFaceNativePluginWrapper();
         wrapper.Initialize(Path.Combine(basePath, "model/main_clnf_general.txt").ToString(), Path.Combine(basePath, "classifiers/haarcascade_frontalface_alt.xml"), basePath, this.isQuietMode);
+        
+        // WorkerThread 開始
+        this.isRunning = true;
+        faceTrackingWorkerThread.Start();
     }
 
     // Update is called once per frame
     void Update()
     {
-        wrapper.Update();
-        UpdateTrackingValues();
-        UpdateTarget();
+        UpdateTargetModel();
     }
 
     private void OnApplicationQuit()
     {
+        this.isRunning = false;
+        if(this.faceTrackingWorkerThread != null)
+        {
+            this.faceTrackingWorkerThread.Join();
+        }
+
         wrapper.Terminate();
+    }
+
+    private void UpdateTargetModel()
+    {
+        lock(locker)
+        {
+            this.targetFaceObject.transform.rotation = this.destinationFaceRotation;
+        }
+    }
+
+    private void DoFaceTracking()
+    {
+        while(this.isRunning)
+        {
+            wrapper.Update();
+            UpdateTrackingValues();
+        }
     }
 
     private void UpdateTrackingValues()
     {
         wrapper.GetFaceTrackingValues(ref trackingValue);
 
-        if(trackingValue.detectionCertainty > this.certaintyThreshold)
+        if (trackingValue.detectionCertainty > this.certaintyThreshold)
         {
             // 結果の信頼度が一定以下であれば無視
             return;
@@ -89,14 +127,12 @@ public class FaceTracker : MonoBehaviour
 
         Quaternion rotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
         rotation.eulerAngles = new Vector3(-rotation.eulerAngles.x, rotation.eulerAngles.y, -rotation.eulerAngles.z);   // 鏡写しに回転するよう補正
-        this.destinationFaceRotation = rotation * this.initialModelHeadRotation;
-    }
 
-    private void UpdateTarget()
-    {
-        this.targetFaceObject.transform.rotation = this.destinationFaceRotation;
+        lock(locker)
+        {
+            this.destinationFaceRotation = rotation * this.initialModelHeadRotation;
+        }
     }
-
 }
 
 public class FaceTrackingUtils
