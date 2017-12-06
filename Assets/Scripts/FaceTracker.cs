@@ -24,6 +24,12 @@ public class FaceTracker : MonoBehaviour
     public GameObject targetFaceObject;
 
     /// <summary>
+    /// LowPassFilteringのファクター（小さい値のほうがより平滑化されるが遅延が大きくなる）
+    /// </summary>
+    [Range(0.01f, 1.0f)]
+    public float lowPassFactor = 0.5f;
+
+    /// <summary>
     /// 対象頭部オブジェクトの初期 Transform
     /// </summary>
     private Quaternion initialModelHeadRotation;
@@ -32,6 +38,11 @@ public class FaceTracker : MonoBehaviour
     /// FaceTracking の結果による Transform 到達値
     /// </summary>
     private Quaternion destinationFaceRotation;
+
+    /// <summary>
+    /// 初回のFilteringを判定（Filterの初期値を設定する）
+    /// </summary>
+    private bool isInitialFiltering = true;
 
     private OpenFaceNativePluginWrapper wrapper;
     private OpenFaceNativePluginWrapper.FaceTrackingValues trackingValue;
@@ -95,8 +106,11 @@ public class FaceTracker : MonoBehaviour
     {
         lock(locker)
         {
-            this.targetFaceObject.transform.rotation = this.destinationFaceRotation;
+            // 毎フレーム頭部の回転値に対してLowPassFilteringして補間
+            this.targetFaceObject.transform.rotation = LowpassFilterQuaternion(this.targetFaceObject.transform.rotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
         }
+
+        this.isInitialFiltering = false;
     }
 
     private void DoFaceTracking()
@@ -126,12 +140,23 @@ public class FaceTracker : MonoBehaviour
         transformationM.SetRow(3, new Vector4(0, 0, 0, 1));
 
         Quaternion rotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
-        rotation.eulerAngles = new Vector3(-rotation.eulerAngles.x, rotation.eulerAngles.y, -rotation.eulerAngles.z);   // 鏡写しに回転するよう補正
+        rotation.eulerAngles = new Vector3(-rotation.eulerAngles.x, - rotation.eulerAngles.y, -rotation.eulerAngles.z);   // 鏡写しに回転するよう補正
 
         lock(locker)
         {
             this.destinationFaceRotation = rotation * this.initialModelHeadRotation;
         }
+    }
+
+    private Quaternion LowpassFilterQuaternion(Quaternion intermediateValue, Quaternion targetValue, float factor, bool init)
+    {
+        if (init)
+        {
+            intermediateValue = targetValue;
+        }
+
+        intermediateValue = Quaternion.Lerp(intermediateValue, targetValue, factor);
+        return intermediateValue;
     }
 }
 
