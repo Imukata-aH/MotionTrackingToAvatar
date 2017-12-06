@@ -140,7 +140,7 @@ public class FaceTracker : MonoBehaviour
         transformationM.SetRow(3, new Vector4(0, 0, 0, 1));
 
         Quaternion rotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
-        rotation.eulerAngles = new Vector3(-rotation.eulerAngles.x, - rotation.eulerAngles.y, -rotation.eulerAngles.z);   // 鏡写しに回転するよう補正
+        rotation.eulerAngles = new Vector3(-rotation.eulerAngles.x, - rotation.eulerAngles.y, rotation.eulerAngles.z);   // 鏡写しに回転するよう補正
 
         lock(locker)
         {
