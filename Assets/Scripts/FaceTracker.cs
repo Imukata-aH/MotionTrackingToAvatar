@@ -44,6 +44,8 @@ public class FaceTracker : MonoBehaviour
     /// </summary>
     private bool isInitialFiltering = true;
 
+    public bool isLocal = false;
+
     private OpenFaceNativePluginWrapper wrapper;
     private OpenFaceNativePluginWrapper.FaceTrackingValues trackingValue;
     private Matrix4x4 transformationM = Matrix4x4.identity;
@@ -72,7 +74,11 @@ public class FaceTracker : MonoBehaviour
         //Debug.Log("invertZM " + invertZM.ToString());
 
         // 初期 Transform 値の設定
-        this.initialModelHeadRotation = targetFaceObject.transform.rotation;
+        if(!isLocal)
+            this.initialModelHeadRotation = targetFaceObject.transform.rotation;
+        else
+            this.initialModelHeadRotation = targetFaceObject.transform.localRotation;
+
         this.destinationFaceRotation = this.initialModelHeadRotation;
 
         // FaceTracker の初期化
@@ -107,7 +113,10 @@ public class FaceTracker : MonoBehaviour
         lock(locker)
         {
             // 毎フレーム頭部の回転値に対してLowPassFilteringして補間
-            this.targetFaceObject.transform.rotation = LowpassFilterQuaternion(this.targetFaceObject.transform.rotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
+            if(!isLocal)
+                this.targetFaceObject.transform.rotation = LowpassFilterQuaternion(this.targetFaceObject.transform.rotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
+            else
+                this.targetFaceObject.transform.localRotation = LowpassFilterQuaternion(this.targetFaceObject.transform.localRotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
         }
 
         this.isInitialFiltering = false;

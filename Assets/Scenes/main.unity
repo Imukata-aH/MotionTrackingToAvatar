@@ -547,6 +547,7 @@ MonoBehaviour:
   certaintyThreshold: 0.2
   targetFaceObject: {fileID: 938954189}
   lowPassFactor: 0.5
+  isLocal: 0
 --- !u!4 &1391422050
 Transform:
   m_ObjectHideFlags: 0
