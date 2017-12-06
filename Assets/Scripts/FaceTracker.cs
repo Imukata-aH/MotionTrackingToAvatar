@@ -25,22 +25,31 @@ public class FaceTracker : MonoBehaviour
     /// <summary>
     /// 対象頭部オブジェクトの初期 Transform
     /// </summary>
-    private Transform initialFaceTransform;
+    private Quaternion initialModelHeadRotation;
 
     /// <summary>
     /// FaceTracking の結果による Transform 到達値
     /// </summary>
-    private Transform destinationFaceTransform;
+    private Quaternion destinationFaceRotation;
 
     private OpenFaceNativePluginWrapper wrapper;
     private OpenFaceNativePluginWrapper.FaceTrackingValues trackingValue;
+    private Matrix4x4 transformationM = Matrix4x4.identity;
+    private Matrix4x4 invertYM;
+    private Matrix4x4 invertZM;
 
     // Use this for initialization
     void Start()
     {
+        // 座標系変換行列の初期化
+        invertYM = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, -1, 1));
+        //Debug.Log("invertYM " + invertYM.ToString());
+        invertZM = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, 1, -1));
+        //Debug.Log("invertZM " + invertZM.ToString());
+
         // 初期 Transform 値の設定
-        this.initialFaceTransform = targetFaceObject.transform;
-        this.destinationFaceTransform = this.initialFaceTransform;
+        this.initialModelHeadRotation = targetFaceObject.transform.rotation;
+        this.destinationFaceRotation = this.initialModelHeadRotation;
 
         // FaceTracker の初期化
         string basePath = "Assets/Resources";
@@ -71,56 +80,39 @@ public class FaceTracker : MonoBehaviour
             return;
         }
 
-        Matrix4x4 mat = Matrix4x4.identity;
+        double[] rotMat = trackingValue.rotationMatrix;
+        double[] tVec = trackingValue.translation;
+        transformationM.SetRow(0, new Vector4((float)rotMat[0 * 3 + 0], (float)rotMat[0 * 3 + 1], (float)rotMat[0 * 3 + 2], (float)tVec[0]));
+        transformationM.SetRow(1, new Vector4((float)rotMat[1 * 3 + 0], (float)rotMat[1 * 3 + 1], (float)rotMat[1 * 3 + 2], (float)tVec[1]));
+        transformationM.SetRow(2, new Vector4((float)rotMat[2 * 3 + 0], (float)rotMat[2 * 3 + 1], (float)rotMat[2 * 3 + 2], (float)tVec[2]));
+        transformationM.SetRow(3, new Vector4(0, 0, 0, 1));
 
-        // Euler to Matrix
-        float s1 = Mathf.Sin((float)trackingValue.rotationEuler[0]);
-        float s2 = Mathf.Sin((float)trackingValue.rotationEuler[1]);
-        float s3 = Mathf.Sin((float)trackingValue.rotationEuler[2]);
-
-        float c1 = Mathf.Cos((float)trackingValue.rotationEuler[0]);
-        float c2 = Mathf.Cos((float)trackingValue.rotationEuler[1]);
-        float c3 = Mathf.Cos((float)trackingValue.rotationEuler[2]);
-
-        mat[0, 0] = c2 * c3;
-        mat[0, 1] = -c2 * s3;
-        mat[0, 2] = s2;
-        mat[1, 0] = c1 * s3 + c3 * s1 * s2;
-        mat[1, 1] = c1 * c3 - s1 * s2 * s3;
-        mat[1, 2] = -c2 * s1;
-        mat[2, 0] = s1 * s3 - c1 * c3 * s2;
-        mat[2, 1] = c3 * s1 + c1 * s2 * s3;
-        mat[2, 2] = c1 * c2;
-
-        Matrix4x4 invertYM = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, -1, 1));
-        Matrix4x4 invertZM = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, 1, -1));
-
-        mat = invertYM * mat;
-        mat = mat * invertZM;
-
-        Vector3 forward;
-        forward.x = mat.m02;
-        forward.y = mat.m12;
-        forward.z = mat.m22;
-
-        Vector3 upwards;
-        upwards.x = mat.m01;
-        upwards.y = mat.m11;
-        upwards.z = mat.m21;
-
-        this.destinationFaceTransform.localRotation = Quaternion.LookRotation(forward, upwards);
-        this.destinationFaceTransform.localRotation *= this.initialFaceTransform.localRotation;
-
-        // OpenCV の座標系から Unity の座標系へ移しながら値を更新
-        //this.destinationFaceTransform.localRotation = Quaternion.Euler(0, 0, - (float)trackingValue.rotationEuler[0]);
-        //this.destinationFaceTransform.localRotation *= this.initialFaceTransform.localRotation;
-
-
+        Quaternion rotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
+        rotation.eulerAngles = new Vector3(-rotation.eulerAngles.x, rotation.eulerAngles.y, -rotation.eulerAngles.z);   // 鏡写しに回転するよう補正
+        this.destinationFaceRotation = rotation * this.initialModelHeadRotation;
     }
 
     private void UpdateTarget()
     {
-        this.targetFaceObject.transform.localRotation = this.destinationFaceTransform.localRotation;
+        this.targetFaceObject.transform.rotation = this.destinationFaceRotation;
     }
 
+}
+
+public class FaceTrackingUtils
+{
+    public static Quaternion ExtractRotationFromMatrix(ref Matrix4x4 matrix)
+    {
+        Vector3 forward;
+        forward.x = matrix.m02;
+        forward.y = matrix.m12;
+        forward.z = matrix.m22;
+
+        Vector3 upwards;
+        upwards.x = matrix.m01;
+        upwards.y = matrix.m11;
+        upwards.z = matrix.m21;
+
+        return Quaternion.LookRotation(forward, upwards);
+    }
 }

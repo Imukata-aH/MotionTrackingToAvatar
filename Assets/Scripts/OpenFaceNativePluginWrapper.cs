@@ -20,7 +20,7 @@ public class OpenFaceNativePluginWrapper
     private static extern void GetFaceTrackingValues(IntPtr pFaceTracker, out FaceTrackingValues values, int sizeofStruct);
 
     public const int translationLength = 3;
-    public const int rotationEulerLength = 3;
+    public const int rotationMatrixLength = 9;
     public const int gazeDirectionLeftLength = 3;
     public const int gazeDirectionRightLength = 3;
     public const int AUsIntensityLength = 17;
@@ -34,8 +34,8 @@ public class OpenFaceNativePluginWrapper
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = translationLength)]
         public double[] translation;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = rotationEulerLength)]
-        public double[] rotationEuler;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = rotationMatrixLength)]
+        public double[] rotationMatrix;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = gazeDirectionLeftLength)]
         public float[] gazeDirectionLeft;
@@ -59,7 +59,7 @@ public class OpenFaceNativePluginWrapper
     public OpenFaceNativePluginWrapper()
     {
         faceTrackingValues.translation = new double[translationLength];
-        faceTrackingValues.rotationEuler = new double[rotationEulerLength];
+        faceTrackingValues.rotationMatrix = new double[rotationMatrixLength];
         faceTrackingValues.gazeDirectionLeft = new float[gazeDirectionLeftLength];
         faceTrackingValues.gazeDirectionRight = new float[gazeDirectionRightLength];
         faceTrackingValues.AUsIntensity = new double[AUsIntensityLength];
