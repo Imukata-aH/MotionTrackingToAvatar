@@ -75,7 +75,7 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
 
         // 頭部 LookTarget の初期配置
         this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
-        this.HeadLookTarget.localPosition = new Vector3(0, 0, -headLookTargetDistance);
+        this.HeadLookTarget.localPosition = new Vector3(0, 0, headLookTargetDistance);
 
         // FaceTracker の初期化
         string basePath = "Assets/Resources";
@@ -111,7 +111,7 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
             if (this.isUpdatedFaceTracking)
             {
                 this.destinationFaceRotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
-                this.destinationFaceRotation.eulerAngles = new Vector3(-this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
+                this.destinationFaceRotation.eulerAngles = new Vector3(this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
 
                 this.isUpdatedFaceTracking = false;
             }
@@ -121,10 +121,8 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
         this.HeadLookTargetRotationCenter.rotation = this.destinationFaceRotation;
         // 回転対象のローカル座標に中心位置を戻す
         this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
-        // TODO: モデル全体(Root)の回転値を反映
-
-        // 毎フレーム頭部の回転値に対してLowPassFilteringして補間
-        //this.targetFaceObject.transform.rotation = LowpassFilterQuaternion(this.targetFaceObject.transform.rotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
+        // モデル全体(Root)の回転値を反映
+        this.HeadLookTargetRotationCenter.rotation *= this.HeadModel.root.rotation;
 
         this.isInitialFiltering = false;
     }
