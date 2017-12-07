@@ -116,6 +116,35 @@ Transform:
 Transform:
   m_PrefabParentObject: {fileID: 400004, guid: 8f0565f23a2b58541a475bd3c1393052, type: 3}
   m_PrefabInternal: {fileID: 718874470}
+--- !u!1 &365159122
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 365159123}
+  m_Layer: 0
+  m_Name: HeadLookingTargetCenter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &365159123
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 365159122}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1904322882}
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &404447535 stripped
 Transform:
   m_PrefabParentObject: {fileID: 400128, guid: 8f0565f23a2b58541a475bd3c1393052, type: 3}
@@ -225,7 +254,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.03
   far clip plane: 1000
   field of view: 60
   orthographic: 0
@@ -512,9 +541,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isQuietMode: 0
   certaintyThreshold: 0.2
-  lowPassFactor: 0.5
+  lowPassFactor: 0.8
   HeadLookTarget: {fileID: 1904322882}
-  HeadLookTargetRotationCenter: {fileID: 304664663}
+  HeadLookTargetRotationCenter: {fileID: 365159123}
+  HeadModel: {fileID: 304664663}
 --- !u!4 &994114460
 Transform:
   m_ObjectHideFlags: 0
@@ -616,12 +646,12 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1904322877}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.43, z: -1.95}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -2.001}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_Father: {fileID: 365159123}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1969016408
 GameObject:

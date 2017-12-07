@@ -34,14 +34,24 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
     public Transform HeadLookTargetRotationCenter;
 
     /// <summary>
+    /// 頭部モデル
+    /// </summary>
+    public Transform HeadModel;
+
+    /// <summary>
     /// FaceTracking の結果による Transform 到達値
     /// </summary>
-    private Quaternion destinationFaceRotation;
+    private Quaternion destinationFaceRotation = Quaternion.identity;
 
     /// <summary>
     /// 初回のFilteringを判定（Filterの初期値を設定する）
     /// </summary>
     private bool isInitialFiltering = true;
+
+    /// <summary>
+    /// 頭部モデルから LookTarget までの距離
+    /// </summary>
+    private float headLookTargetDistance = 2.0f;
 
     private OpenFaceNativePluginWrapper wrapper;
     private OpenFaceNativePluginWrapper.FaceTrackingValues trackingValue;
@@ -63,8 +73,9 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
             IsBackground = true,
         };
 
-        this.HeadLookTarget.position = new Vector3(this.HeadLookTargetRotationCenter.position.x, this.HeadLookTargetRotationCenter.position.y, this.HeadLookTargetRotationCenter.position.z - 2.0f);    // 回転中心（顔）の正面に配置
-        this.destinationFaceRotation = Quaternion.identity;
+        // 頭部 LookTarget の初期配置
+        this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
+        this.HeadLookTarget.localPosition = new Vector3(0, 0, -headLookTargetDistance);
 
         // FaceTracker の初期化
         string basePath = "Assets/Resources";
@@ -106,13 +117,11 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
             }
         }
 
-        // ワールド座標中心にポジションをリセット
-        this.HeadLookTarget.position = new Vector3(0, 0, -2.0f);
         // ワールド座標中心に回す
-        this.HeadLookTarget.position += this.destinationFaceRotation * (-1.0f * Vector3.forward);
-        // 回転対象のローカル座標に位置を戻す
-        this.HeadLookTarget.position += this.HeadLookTargetRotationCenter.position;
-        // モデルの回転値を反映
+        this.HeadLookTargetRotationCenter.rotation = this.destinationFaceRotation;
+        // 回転対象のローカル座標に中心位置を戻す
+        this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
+        // TODO: モデル全体(Root)の回転値を反映
 
         // 毎フレーム頭部の回転値に対してLowPassFilteringして補間
         //this.targetFaceObject.transform.rotation = LowpassFilterQuaternion(this.targetFaceObject.transform.rotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
