@@ -5,8 +5,7 @@ using System.IO;
 using System.Threading;
 using UnityEngine;
 
-public class FaceTracker : MonoBehaviour
-{
+public class FaceTrackerToLookTarget : MonoBehaviour {
     /// <summary>
     /// FaceTracker の Tracking 中の画像表示等を行うかどうか
     /// </summary>
@@ -19,38 +18,44 @@ public class FaceTracker : MonoBehaviour
     public float certaintyThreshold = 0.2f;
 
     /// <summary>
-    /// FaceTracking の結果を適用する頭部対象
-    /// </summary>
-    public GameObject targetFaceObject;
-
-    /// <summary>
     /// LowPassFilteringのファクター（小さい値のほうがより平滑化されるが遅延が大きくなる）
     /// </summary>
     [Range(0.01f, 1.0f)]
     public float lowPassFactor = 0.5f;
 
     /// <summary>
-    /// 対象頭部オブジェクトの初期 Transform
+    /// 頭部の Look Target
     /// </summary>
-    private Quaternion initialModelHeadRotation;
+    public Transform HeadLookTarget;
+
+    /// <summary>
+    /// 頭部 LookTarget の回転中心
+    /// </summary>
+    public Transform HeadLookTargetRotationCenter;
+
+    /// <summary>
+    /// 頭部モデル
+    /// </summary>
+    public Transform HeadModel;
 
     /// <summary>
     /// FaceTracking の結果による Transform 到達値
     /// </summary>
-    private Quaternion destinationFaceRotation;
+    private Quaternion destinationFaceRotation = Quaternion.identity;
 
     /// <summary>
     /// 初回のFilteringを判定（Filterの初期値を設定する）
     /// </summary>
     private bool isInitialFiltering = true;
 
-    public bool isLocal = false;
+    /// <summary>
+    /// 頭部モデルから LookTarget までの距離
+    /// </summary>
+    private float headLookTargetDistance = 2.0f;
 
     private OpenFaceNativePluginWrapper wrapper;
     private OpenFaceNativePluginWrapper.FaceTrackingValues trackingValue;
     private Matrix4x4 transformationM = Matrix4x4.identity;
-    private Matrix4x4 invertYM;
-    private Matrix4x4 invertZM;
 
     private Thread faceTrackingWorkerThread;
     private bool isRunning = false;
@@ -68,25 +73,15 @@ public class FaceTracker : MonoBehaviour
             IsBackground = true,
         };
 
-        // 座標系変換行列の初期化
-        invertYM = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, -1, 1));
-        //Debug.Log("invertYM " + invertYM.ToString());
-        invertZM = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, 1, -1));
-        //Debug.Log("invertZM " + invertZM.ToString());
-
-        // 初期 Transform 値の設定
-        if(!isLocal)
-            this.initialModelHeadRotation = targetFaceObject.transform.rotation;
-        else
-            this.initialModelHeadRotation = targetFaceObject.transform.localRotation;
-
-        this.destinationFaceRotation = this.initialModelHeadRotation;
+        // 頭部 LookTarget の初期配置
+        this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
+        this.HeadLookTarget.localPosition = new Vector3(0, 0, headLookTargetDistance);
 
         // FaceTracker の初期化
         string basePath = "Assets/Resources";
         wrapper = new OpenFaceNativePluginWrapper();
         wrapper.Initialize(Path.Combine(basePath, "model/main_clnf_general.txt").ToString(), Path.Combine(basePath, "classifiers/haarcascade_frontalface_alt.xml"), basePath, this.isQuietMode);
-        
+
         // WorkerThread 開始
         this.isRunning = true;
         faceTrackingWorkerThread.Start();
@@ -101,7 +96,7 @@ public class FaceTracker : MonoBehaviour
     private void OnApplicationQuit()
     {
         this.isRunning = false;
-        if(this.faceTrackingWorkerThread != null)
+        if (this.faceTrackingWorkerThread != null)
         {
             this.faceTrackingWorkerThread.Join();
         }
@@ -116,35 +111,25 @@ public class FaceTracker : MonoBehaviour
             if (this.isUpdatedFaceTracking)
             {
                 this.destinationFaceRotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
-                this.destinationFaceRotation.eulerAngles = new Vector3(-this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
-
-                if (this.isLocal)
-                {
-                    this.destinationFaceRotation = Quaternion.Euler(this.targetFaceObject.transform.parent.TransformVector(this.destinationFaceRotation.eulerAngles));
-                }
+                this.destinationFaceRotation.eulerAngles = new Vector3(this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
 
                 this.isUpdatedFaceTracking = false;
             }
         }
 
-
-        if (!this.isLocal)
-            this.destinationFaceRotation = this.destinationFaceRotation * this.initialModelHeadRotation;
-        else
-            this.destinationFaceRotation = this.initialModelHeadRotation * this.destinationFaceRotation;
-
-        // 毎フレーム頭部の回転値に対してLowPassFilteringして補間
-        if (!isLocal)
-            this.targetFaceObject.transform.rotation = LowpassFilterQuaternion(this.targetFaceObject.transform.rotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
-        else
-            this.targetFaceObject.transform.localRotation = LowpassFilterQuaternion(this.targetFaceObject.transform.localRotation, this.destinationFaceRotation, this.lowPassFactor, this.isInitialFiltering);
+        // ワールド座標中心に回す
+        this.HeadLookTargetRotationCenter.rotation = this.destinationFaceRotation;
+        // 回転対象のローカル座標に中心位置を戻す
+        this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
+        // モデル全体(Root)の回転値を反映
+        this.HeadLookTargetRotationCenter.rotation *= this.HeadModel.root.rotation;
 
         this.isInitialFiltering = false;
     }
 
     private void DoFaceTracking()
     {
-        while(this.isRunning)
+        while (this.isRunning)
         {
             wrapper.Update();
             UpdateTrackingValues();
@@ -172,7 +157,6 @@ public class FaceTracker : MonoBehaviour
             transformationM.SetRow(3, new Vector4(0, 0, 0, 1));
 
             this.isUpdatedFaceTracking = true;
-
         }
 
     }
@@ -186,23 +170,5 @@ public class FaceTracker : MonoBehaviour
 
         intermediateValue = Quaternion.Lerp(intermediateValue, targetValue, factor);
         return intermediateValue;
-    }
-}
-
-public class FaceTrackingUtils
-{
-    public static Quaternion ExtractRotationFromMatrix(ref Matrix4x4 matrix)
-    {
-        Vector3 forward;
-        forward.x = matrix.m02;
-        forward.y = matrix.m12;
-        forward.z = matrix.m22;
-
-        Vector3 upwards;
-        upwards.x = matrix.m01;
-        upwards.y = matrix.m11;
-        upwards.z = matrix.m21;
-
-        return Quaternion.LookRotation(forward, upwards);
     }
 }
