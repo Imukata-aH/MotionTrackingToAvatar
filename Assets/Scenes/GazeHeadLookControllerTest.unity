@@ -112,6 +112,14 @@ NavMeshSettings:
 Transform:
   m_PrefabParentObject: {fileID: 413016, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
   m_PrefabInternal: {fileID: 382745306}
+--- !u!4 &244881026 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 413740, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
+  m_PrefabInternal: {fileID: 382745306}
+--- !u!4 &366693658 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 401208, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
+  m_PrefabInternal: {fileID: 382745306}
 --- !u!1001 &382745306
 Prefab:
   m_ObjectHideFlags: 0
@@ -247,6 +255,10 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!4 &444918404 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 452130, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
+  m_PrefabInternal: {fileID: 382745306}
 --- !u!1 &480001818 stripped
 GameObject:
   m_PrefabParentObject: {fileID: 130330, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
@@ -282,8 +294,133 @@ MonoBehaviour:
   headLookVector: {x: 0, y: 0, z: 1}
   headUpVector: {x: 0, y: 1, z: 0}
   target: {x: 0, y: 0, z: 0}
+  LookTaret: {fileID: 2136960342}
   effect: 1
   overrideAnimation: 0
+--- !u!114 &480001820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 480001818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb4fa562d67034868a9aafbe4b663012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rootNode: {fileID: 0}
+  segments:
+  - firstTransform: {fileID: 244881026}
+    lastTransform: {fileID: 1620086672}
+    thresholdAngleDifference: 30
+    bendingMultiplier: 0.6
+    maxAngleDifference: 90
+    maxBendingAngle: 40
+    responsiveness: 2.5
+  - firstTransform: {fileID: 444918404}
+    lastTransform: {fileID: 1295283113}
+    thresholdAngleDifference: 0
+    bendingMultiplier: 0.7
+    maxAngleDifference: 30
+    maxBendingAngle: 80
+    responsiveness: 4
+  nonAffectedJoints:
+  - joint: {fileID: 1832487827}
+    effect: 0.3
+  - joint: {fileID: 366693658}
+    effect: 0.3
+  headLookVector: {x: 0, y: 0, z: 1}
+  headUpVector: {x: 0, y: 1, z: 0}
+  target: {x: 0, y: 0, z: 0}
+  LookTaret: {fileID: 1330514852}
+  effect: 1
+  overrideAnimation: 0
+--- !u!4 &1295283113 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 469906, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
+  m_PrefabInternal: {fileID: 382745306}
+--- !u!1 &1330514847
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1330514852}
+  - component: {fileID: 1330514851}
+  - component: {fileID: 1330514850}
+  - component: {fileID: 1330514849}
+  m_Layer: 0
+  m_Name: LookTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!23 &1330514849
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1330514847}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!135 &1330514850
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1330514847}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!33 &1330514851
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1330514847}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1330514852
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1330514847}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.427652, y: 1.7852434, z: 3.159}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1406712531
 GameObject:
   m_ObjectHideFlags: 0
@@ -363,6 +500,14 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!4 &1620086672 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 466412, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
+  m_PrefabInternal: {fileID: 382745306}
+--- !u!4 &1832487827 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 466334, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
+  m_PrefabInternal: {fileID: 382745306}
 --- !u!4 &1847501037 stripped
 Transform:
   m_PrefabParentObject: {fileID: 485602, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
@@ -378,7 +523,6 @@ GameObject:
   - component: {fileID: 2136960341}
   - component: {fileID: 2136960340}
   - component: {fileID: 2136960339}
-  - component: {fileID: 2136960338}
   m_Layer: 0
   m_Name: GazeTarget
   m_TagString: Untagged
@@ -386,18 +530,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2136960338
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2136960337}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 301b6abf19dd84c80a99995430a39dcf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  headLook: {fileID: 480001819}
 --- !u!23 &2136960339
 MeshRenderer:
   m_ObjectHideFlags: 0
