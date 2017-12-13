@@ -351,6 +351,40 @@ Prefab:
 GameObject:
   m_PrefabParentObject: {fileID: 130330, guid: 0a37d30c9c65ded469115d25d143501e, type: 2}
   m_PrefabInternal: {fileID: 1214005859}
+--- !u!114 &1220298351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1220298350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb4fa562d67034868a9aafbe4b663012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rootNode: {fileID: 0}
+  segments:
+  - firstTransform: {fileID: 1272580160}
+    lastTransform: {fileID: 1272580160}
+    thresholdAngleDifference: 0
+    bendingMultiplier: 1
+    maxAngleDifference: 15
+    maxBendingAngle: 15
+    responsiveness: 5
+  - firstTransform: {fileID: 1321005504}
+    lastTransform: {fileID: 1321005504}
+    thresholdAngleDifference: 0
+    bendingMultiplier: 1
+    maxAngleDifference: 15
+    maxBendingAngle: 15
+    responsiveness: 5
+  nonAffectedJoints: []
+  headLookVector: {x: 0, y: 0, z: 1}
+  headUpVector: {x: 0, y: 1, z: 0}
+  target: {x: 0, y: 0, z: 0}
+  LookTaret: {fileID: 857499101}
+  effect: 1
+  overrideAnimation: 0
 --- !u!114 &1220298353
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -365,11 +399,11 @@ MonoBehaviour:
   isQuietMode: 0
   certaintyThreshold: 0.2
   lowPassFactor: 0.5
-  IsApplyHeadLooking: 1
+  IsApplyHeadLooking: 0
   HeadLookTarget: {fileID: 25439179}
   HeadLookTargetRotationCenter: {fileID: 1965387909}
   HeadModel: {fileID: 1449840911}
-  IsApplyGaze: 0
+  IsApplyGaze: 1
   GazeLookTarget: {fileID: 857499101}
   GazeLookTargetRotationCenter: {fileID: 818704898}
   EyeL: {fileID: 1272580160}
