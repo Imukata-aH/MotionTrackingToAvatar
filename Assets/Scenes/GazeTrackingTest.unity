@@ -365,9 +365,11 @@ MonoBehaviour:
   isQuietMode: 0
   certaintyThreshold: 0.2
   lowPassFactor: 0.5
+  IsApplyHeadLooking: 1
   HeadLookTarget: {fileID: 25439179}
   HeadLookTargetRotationCenter: {fileID: 1965387909}
   HeadModel: {fileID: 1449840911}
+  IsApplyGaze: 0
   GazeLookTarget: {fileID: 857499101}
   GazeLookTargetRotationCenter: {fileID: 818704898}
   EyeL: {fileID: 1272580160}

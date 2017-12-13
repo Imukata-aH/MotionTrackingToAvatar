@@ -60,10 +60,11 @@ public class OpenFaceNativePluginWrapper
     {
         faceTrackingValues.translation = new double[translationLength];
         faceTrackingValues.rotationMatrix = new double[rotationMatrixLength];
-        faceTrackingValues.gazeDirectionLeft = new float[gazeDirectionLeftLength];
-        faceTrackingValues.gazeDirectionRight = new float[gazeDirectionRightLength];
         faceTrackingValues.AUsIntensity = new double[AUsIntensityLength];
         faceTrackingValues.AUsClass = new double[AUsClassLength];
+        // 視線ベクトルの初期値を(OpenCVにおける)z方向forwardに設定
+        faceTrackingValues.gazeDirectionLeft = new float[gazeDirectionLeftLength] { 0.0f, 0.0f, -1.0f };
+        faceTrackingValues.gazeDirectionRight = new float[gazeDirectionRightLength] { 0.0f, 0.0f, -1.0f };
     }
 
     static OpenFaceNativePluginWrapper()

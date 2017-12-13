@@ -23,6 +23,8 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
     [Range(0.01f, 1.0f)]
     public float lowPassFactor = 0.5f;
 
+    [HeaderAttribute("Head Rotation")]
+
     /// <summary>
     /// FaceTracking 結果を頭部の LookTarget に適用するかどうか
     /// </summary>
@@ -43,13 +45,20 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
     /// </summary>
     public Transform HeadModel;
 
+    [HeaderAttribute("Gaze Rotation")]
+
+    /// <summary>
+    /// 視線 Tracking 結果を頭部の 視線Target に適用するかどうか
+    /// </summary>
+    public bool IsApplyGaze = true;
+
     /// <summary>
     /// 視線の Look Target
     /// </summary>
     public Transform GazeLookTarget;
 
     /// <summary>
-    /// 頭部 LookTarget の回転中心
+    /// 視線 LookTarget の回転中心
     /// </summary>
     public Transform GazeLookTargetRotationCenter;
 
@@ -169,27 +178,38 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
         {
             // Target に値を反映しない場合は、頭部モデルに追従
             this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
-            this.HeadLookTargetRotationCenter.rotation = this.HeadModel.root.rotation;
+            this.HeadLookTargetRotationCenter.rotation = this.HeadModel.rotation;
         }
     }
 
     private void UpdateGazeLookTarget()
     {
-        Vector3 meanGazeLookVec = Vector3.forward;
-        lock (locker)
+        // FIXME: Gaze 配列はnullにならないようにしているはずなのだが、開始直後にnullになっている場合がある。修正する。
+        if (this.IsApplyGaze && this.trackingValue.gazeDirectionLeft != null && this.trackingValue.gazeDirectionRight != null)
         {
-            // 両目の視線ベクトルの平均を取る
-            Vector3 gazeLookVecL = new Vector3(this.trackingValue.gazeDirectionLeft[0], - this.trackingValue.gazeDirectionLeft[1], - this.trackingValue.gazeDirectionLeft[2]);
-            Vector3 gazeLookVecR = new Vector3(this.trackingValue.gazeDirectionRight[0], - this.trackingValue.gazeDirectionRight[1], - this.trackingValue.gazeDirectionRight[2]);
-            meanGazeLookVec = Vector3.Lerp(gazeLookVecL, gazeLookVecR, 0.5f);
+            Vector3 meanGazeLookVec = Vector3.forward;
+            lock (locker)
+            {
+                // 両目の視線ベクトルの平均を取る
+                Vector3 gazeLookVecL = new Vector3(this.trackingValue.gazeDirectionLeft[0], -this.trackingValue.gazeDirectionLeft[1], -this.trackingValue.gazeDirectionLeft[2]);
+                Vector3 gazeLookVecR = new Vector3(this.trackingValue.gazeDirectionRight[0], -this.trackingValue.gazeDirectionRight[1], -this.trackingValue.gazeDirectionRight[2]);
+                meanGazeLookVec = Vector3.Lerp(gazeLookVecL, gazeLookVecR, 0.5f);
+            }
+
+            this.GazeLookTargetRotationCenter.rotation = Quaternion.LookRotation(meanGazeLookVec, this.GazeLookTargetRotationCenter.up);
+
+            // 頭部の移動・回転に追従
+            Vector3 eyesCenter = Vector3.Lerp(this.EyeL.position, this.EyeR.position, 0.5f);
+            this.GazeLookTargetRotationCenter.position = eyesCenter;
+            this.GazeLookTargetRotationCenter.rotation *= this.EyeL.root.rotation;
         }
-
-        this.GazeLookTargetRotationCenter.rotation = Quaternion.LookRotation(meanGazeLookVec, this.GazeLookTargetRotationCenter.up);
-
-        // 頭部の移動・回転に追従
-        Vector3 eyesCenter = Vector3.Lerp(this.EyeL.position, this.EyeR.position, 0.5f);
-        this.GazeLookTargetRotationCenter.position = eyesCenter;
-        this.GazeLookTargetRotationCenter.rotation *= this.EyeL.root.rotation;
+        else
+        {
+            // 頭部の移動・回転にそのまま追従
+            Vector3 eyesCenter = Vector3.Lerp(this.EyeL.position, this.EyeR.position, 0.5f);
+            this.GazeLookTargetRotationCenter.position = eyesCenter;
+            this.GazeLookTargetRotationCenter.rotation = this.HeadModel.rotation;
+        }
     }
 
     private void DoFaceTracking()
