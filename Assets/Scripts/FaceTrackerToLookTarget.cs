@@ -39,6 +39,26 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
     public Transform HeadModel;
 
     /// <summary>
+    /// 視線の Look Target
+    /// </summary>
+    public Transform GazeLookTarget;
+
+    /// <summary>
+    /// 頭部 LookTarget の回転中心
+    /// </summary>
+    public Transform GazeLookTargetRotationCenter;
+
+    /// <summary>
+    /// 左目
+    /// </summary>
+    public Transform EyeL;
+
+    /// <summary>
+    /// 右目
+    /// </summary>
+    public Transform EyeR;
+
+    /// <summary>
     /// FaceTracking の結果による Transform 到達値
     /// </summary>
     private Quaternion destinationFaceRotation = Quaternion.identity;
@@ -51,7 +71,7 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
     /// <summary>
     /// 頭部モデルから LookTarget までの距離
     /// </summary>
-    private float headLookTargetDistance = 2.0f;
+    private float lookTargetDistance = 2.0f;
 
     private OpenFaceNativePluginWrapper wrapper;
     private OpenFaceNativePluginWrapper.FaceTrackingValues trackingValue;
@@ -75,7 +95,13 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
 
         // 頭部 LookTarget の初期配置
         this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
-        this.HeadLookTarget.localPosition = new Vector3(0, 0, headLookTargetDistance);
+        this.HeadLookTarget.localPosition = new Vector3(0, 0, lookTargetDistance);
+
+        // 視線 LookTarget の初期配置
+        // 両目の中心に配置
+        Vector3 eyesCenter = Vector3.Lerp(this.EyeL.position, this.EyeR.position, 0.5f);
+        this.GazeLookTargetRotationCenter.position = eyesCenter;
+        this.GazeLookTarget.localPosition = new Vector3(0, 0, lookTargetDistance);
 
         // FaceTracker の初期化
         string basePath = "Assets/Resources";
