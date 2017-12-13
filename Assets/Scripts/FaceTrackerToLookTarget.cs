@@ -24,6 +24,11 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
     public float lowPassFactor = 0.5f;
 
     /// <summary>
+    /// FaceTracking 結果を頭部の LookTarget に適用するかどうか
+    /// </summary>
+    public bool IsApplyHeadLooking = true;
+
+    /// <summary>
     /// 頭部の Look Target
     /// </summary>
     public Transform HeadLookTarget;
@@ -132,25 +137,59 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
 
     private void UpdateTargetModel()
     {
+        UpdateHeadLookTarget();
+        UpdateGazeLookTarget();
+    }
+
+    private void UpdateHeadLookTarget()
+    {
+        if (this.IsApplyHeadLooking)
+        {
+            lock (locker)
+            {
+                if (this.isUpdatedFaceTracking)
+                {
+                    this.destinationFaceRotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
+                    this.destinationFaceRotation.eulerAngles = new Vector3(this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
+
+                    this.isUpdatedFaceTracking = false;
+                }
+            }
+
+            // ワールド座標中心に回す
+            this.HeadLookTargetRotationCenter.rotation = this.destinationFaceRotation;
+            // 回転対象のローカル座標に中心位置を戻す
+            this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
+            // モデル全体(Root)の回転値を反映
+            this.HeadLookTargetRotationCenter.rotation *= this.HeadModel.root.rotation;
+
+            this.isInitialFiltering = false;
+        }
+        else
+        {
+            // Target に値を反映しない場合は、頭部モデルに追従
+            this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
+            this.HeadLookTargetRotationCenter.rotation = this.HeadModel.root.rotation;
+        }
+    }
+
+    private void UpdateGazeLookTarget()
+    {
+        Vector3 meanGazeLookVec = Vector3.forward;
         lock (locker)
         {
-            if (this.isUpdatedFaceTracking)
-            {
-                this.destinationFaceRotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
-                this.destinationFaceRotation.eulerAngles = new Vector3(this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
-
-                this.isUpdatedFaceTracking = false;
-            }
+            // 両目の視線ベクトルの平均を取る
+            Vector3 gazeLookVecL = new Vector3(this.trackingValue.gazeDirectionLeft[0], - this.trackingValue.gazeDirectionLeft[1], - this.trackingValue.gazeDirectionLeft[2]);
+            Vector3 gazeLookVecR = new Vector3(this.trackingValue.gazeDirectionRight[0], - this.trackingValue.gazeDirectionRight[1], - this.trackingValue.gazeDirectionRight[2]);
+            meanGazeLookVec = Vector3.Lerp(gazeLookVecL, gazeLookVecR, 0.5f);
         }
 
-        // ワールド座標中心に回す
-        this.HeadLookTargetRotationCenter.rotation = this.destinationFaceRotation;
-        // 回転対象のローカル座標に中心位置を戻す
-        this.HeadLookTargetRotationCenter.position = this.HeadModel.position;
-        // モデル全体(Root)の回転値を反映
-        this.HeadLookTargetRotationCenter.rotation *= this.HeadModel.root.rotation;
+        this.GazeLookTargetRotationCenter.rotation = Quaternion.LookRotation(meanGazeLookVec, this.GazeLookTargetRotationCenter.up);
 
-        this.isInitialFiltering = false;
+        // 頭部の移動・回転に追従
+        Vector3 eyesCenter = Vector3.Lerp(this.EyeL.position, this.EyeR.position, 0.5f);
+        this.GazeLookTargetRotationCenter.position = eyesCenter;
+        this.GazeLookTargetRotationCenter.rotation *= this.EyeL.root.rotation;
     }
 
     private void DoFaceTracking()
@@ -164,7 +203,10 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
 
     private void UpdateTrackingValues()
     {
-        wrapper.GetFaceTrackingValues(ref trackingValue);
+        lock (locker)
+        {
+            wrapper.GetFaceTrackingValues(ref trackingValue);
+        }
 
         if (trackingValue.detectionCertainty > this.certaintyThreshold)
         {
