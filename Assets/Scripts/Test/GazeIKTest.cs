@@ -8,6 +8,7 @@ namespace TestScripts
     {
         public bool IKActive = false;
         public Transform Target;
+        public Transform ModelHead;
 
         private Animator _animator;
 
@@ -15,6 +16,9 @@ namespace TestScripts
         private void Start()
         {
             this._animator = this.GetComponent<Animator>();
+
+            this.Target.parent = this.ModelHead;    // モデルの頭部を基準に動くようにする。
+            this.Target.localPosition = new Vector3(0, 0, 2.0f);
         }
 
         private void OnAnimatorIK(int layerIndex)
