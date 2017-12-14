@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Linq;
 using UnityEngine;
 
 public class FaceTrackerToLookTarget : MonoBehaviour {
@@ -95,6 +96,40 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
     private bool isRunning = false;
     private bool isUpdatedFaceTracking = false;
     private object locker;
+
+    public List<float> GetAUsIntensity()
+    {
+        List<float> ret = new List<float>();
+        lock(locker)
+        {
+            if(this.trackingValue.AUsIntensity != null)
+            {
+                foreach (var value in this.trackingValue.AUsIntensity)
+                {
+                    ret.Add((float)value);
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    public List<float> GetAUsClass()
+    {
+        List<float> ret = new List<float>();
+        lock (locker)
+        {
+            if(this.trackingValue.AUsClass != null)
+            {
+                foreach (var value in this.trackingValue.AUsClass)
+                {
+                    ret.Add((float)value);
+                }
+            }
+        }
+
+        return ret;
+    }
 
     // Use this for initialization
     void Start()
