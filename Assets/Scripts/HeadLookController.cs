@@ -32,9 +32,11 @@ public class HeadLookController : MonoBehaviour {
 	public NonAffectedJoints[] nonAffectedJoints;
 	public Vector3 headLookVector = Vector3.forward;
 	public Vector3 headUpVector = Vector3.up;
-	public Vector3 target = Vector3.zero;
-	public float effect = 1;
+    public Vector3 target = Vector3.zero;
+    public Transform LookTaret;
+    public float effect = 1;
 	public bool overrideAnimation = false;
+   
 	
 	void Start () {
 		if (rootNode == null) {
@@ -94,12 +96,13 @@ public class HeadLookController : MonoBehaviour {
 			
 			Quaternion parentRot = segment.firstTransform.parent.rotation;
 			Quaternion parentRotInv = Quaternion.Inverse(parentRot);
-			
-			// Desired look direction in world space
-			Vector3 lookDirWorld = (target - segment.lastTransform.position).normalized;
-			
-			// Desired look directions in neck parent space
-			Vector3 lookDirGoal = (parentRotInv * lookDirWorld);
+
+            // Desired look direction in world space
+            //Vector3 lookDirWorld = (target - segment.lastTransform.position).normalized;
+            Vector3 lookDirWorld = (this.LookTaret.position - segment.lastTransform.position).normalized;
+
+            // Desired look directions in neck parent space
+            Vector3 lookDirGoal = (parentRotInv * lookDirWorld);
 			
 			// Get the horizontal and vertical rotation angle to look at the target
 			float hAngle = AngleAroundAxis(
