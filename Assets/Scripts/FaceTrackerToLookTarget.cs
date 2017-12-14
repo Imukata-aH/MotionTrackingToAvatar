@@ -159,7 +159,7 @@ public class FaceTrackerToLookTarget : MonoBehaviour {
                 if (this.isUpdatedFaceTracking)
                 {
                     this.destinationFaceRotation = FaceTrackingUtils.ExtractRotationFromMatrix(ref transformationM);
-                    this.destinationFaceRotation.eulerAngles = new Vector3(this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
+                    this.destinationFaceRotation.eulerAngles = new Vector3(-this.destinationFaceRotation.eulerAngles.x, -this.destinationFaceRotation.eulerAngles.y, this.destinationFaceRotation.eulerAngles.z);   // 鏡写しに回転するよう補正
 
                     this.isUpdatedFaceTracking = false;
                 }
